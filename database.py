@@ -25,10 +25,10 @@ def obtenerRecibosConIntervaloYContribuyente(desde_fecha, hasta_fecha, contribuy
         SELECT id_recibo, id_fecha, id_neto, id_descuento, id_concepto1, id_contribuyente 
         FROM TEARMO01 
         WHERE id_fecha BETWEEN %s AND %s
-        AND id_contribuyente = %s
+        AND id_contribuyente LIKE %s
         ORDER BY id_fecha DESC
         LIMIT 100
-    """, (desde_fecha, hasta_fecha, contribuyente)) 
+    """, (desde_fecha, hasta_fecha, f"%{contribuyente}%"))
 
     resultados = cursor.fetchall()
     conn.close()
@@ -48,6 +48,7 @@ def obtenerRecibosConIntervaloYContribuyente(desde_fecha, hasta_fecha, contribuy
         for row in resultados
     ]
     return recibos
+
 
 
 def obtenerRecibosConIntervalo(desde_fecha, hasta_fecha):
