@@ -22,7 +22,7 @@ def obtenerRecibosHoy():
     conn = get_connection()
     cursor = conn.cursor()
 
-    fecha_hoy = datetime.today().strftime('%y%m%d')
+    fecha_hoy = datetime.datetime.today().strftime('%y%m%d')
 
     cursor.execute("""
         SELECT id_recibo, id_fecha, id_neto, id_descuento, id_concepto, id_contribuyente 
