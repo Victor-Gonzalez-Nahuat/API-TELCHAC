@@ -25,7 +25,7 @@ def obtenerRecibosHoy():
     fecha_hoy = datetime.datetime.today().strftime('%y%m%d')
 
     cursor.execute("""
-        SELECT id_recibo, id_fecha, id_neto, id_descuento, id_concepto, id_contribuyente 
+        SELECT id_recibo, id_fecha, id_neto, id_descuento, id_concepto1, id_contribuyente 
         FROM TEARMO01 
         WHERE id_fecha = %s
         ORDER BY id_fecha DESC
