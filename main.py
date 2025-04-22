@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Query
-from database import obtenerRecibosHoy, obtenerRecibosConIntervalo
+from database import obtenerRecibosHoy, obtenerRecibosConIntervalo, obtenerRecibosConIntervaloYContribuyente
 from dotenv import load_dotenv
 import os
 
@@ -11,6 +11,17 @@ DB_PASSWORD = os.getenv('DB_PASSWORD')
 DB_NAME = os.getenv('DB_NAME')
 
 app = FastAPI()
+
+@app.get("/recibos/filtrar")
+async def buscarRecibosContribuyenteIntervalo(
+    desde: str = Query(...),
+    hasta: str = Query(...),
+    contribuyente: str = Query(...)
+):
+    recibos = obtenerRecibosConIntervaloYContribuyente(desde, hasta, contribuyente)
+    if recibos:
+        return recibos
+    raise HTTPException(status_code=404, detail="No se encontraron recibos con ese contribuyente en ese intervalo")
 
 @app.get("/recibos")
 async def buscarRecibosIntervalo(
