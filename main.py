@@ -13,7 +13,7 @@ DB_NAME = os.getenv('DB_NAME')
 app = FastAPI()
 
 @app.get("/recibos/{fecha_desde}/{fecha_hasta}")
-async def buscarRecibosIntervalo(fecha_desde: date, fecha_hasta: date):
+async def buscarRecibosIntervalo(fecha_desde, fecha_hasta):
     recibos = obtenerRecibosConIntervalo(fecha_desde, fecha_hasta)
     if recibos:
         return recibos
