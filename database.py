@@ -17,6 +17,36 @@ def get_connection():
         port=DB_PORT
     )
 
+def obtenerTotalesYDescuentos(desde_fecha, hasta_fecha, contribuyente=None):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    if contribuyente:
+        cursor.execute("""
+            SELECT 
+                COALESCE(SUM(id_neto), 0) AS total_neto, 
+                COALESCE(SUM(id_descuento), 0) AS total_descuento
+            FROM TEARMO01
+            WHERE id_fecha BETWEEN %s AND %s
+            AND id_contribuyente LIKE %s
+        """, (desde_fecha, hasta_fecha, f"%{contribuyente}%"))
+    else:
+        cursor.execute("""
+            SELECT 
+                COALESCE(SUM(id_neto), 0) AS total_neto, 
+                COALESCE(SUM(id_descuento), 0) AS total_descuento
+            FROM TEARMO01
+            WHERE id_fecha BETWEEN %s AND %s
+        """, (desde_fecha, hasta_fecha))
+
+    resultado = cursor.fetchone()
+    conn.close()
+
+    return {
+        "total_neto": float(resultado[0]),
+        "total_descuento": float(resultado[1])
+    }
+
 def obtenerRecibosConIntervaloYContribuyente(desde_fecha, hasta_fecha, contribuyente):
     conn = get_connection()
     cursor = conn.cursor()

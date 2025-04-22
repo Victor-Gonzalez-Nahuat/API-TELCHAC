@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Query
-from database import obtenerRecibosHoy, obtenerRecibosConIntervalo, obtenerRecibosConIntervaloYContribuyente
+from database import obtenerRecibosHoy, obtenerRecibosConIntervalo, obtenerRecibosConIntervaloYContribuyente, obtenerTotalesYDescuentos
 from dotenv import load_dotenv
 import os
 
@@ -11,6 +11,15 @@ DB_PASSWORD = os.getenv('DB_PASSWORD')
 DB_NAME = os.getenv('DB_NAME')
 
 app = FastAPI()
+
+@app.get("/recibos/totales")
+async def obtenerSumaTotalesYDescuentos(
+    desde: str = Query(..., description="Fecha de inicio (yymmdd)"),
+    hasta: str = Query(..., description="Fecha de fin (yymmdd)"),
+    contribuyente: str = Query(None, description="(Opcional) Filtro por contribuyente")
+):
+    totales = obtenerTotalesYDescuentos(desde, hasta, contribuyente)
+    return totales
 
 @app.get("/recibos/filtrar")
 async def buscarRecibosContribuyenteIntervalo(
