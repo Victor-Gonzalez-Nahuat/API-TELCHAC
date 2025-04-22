@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from database import obtenerRecibosHoy
+from database import obtenerRecibosHoy, obtenerRecibosConIntervalo
 from dotenv import load_dotenv
 import os
 
@@ -12,8 +12,16 @@ DB_NAME = os.getenv('DB_NAME')
 
 app = FastAPI()
 
+@app.get("/recibos/{fecha_desde}/{fecha_hasta}")
+async def buscarRecibosIntervalo(fecha_desde: date, fecha_hasta: date):
+    recibos = obtenerRecibosConIntervalo(fecha_desde, fecha_hasta)
+    if recibos:
+        return recibos
+    raise HTTPException(status_code=404, detail="No se encontraron recibos en ese intervalo")
+
+
 @app.get("/recibos/hoy")
-async def buscar_ofertas():
+async def buscarRecibosHoy():
     ofertas = obtenerRecibosHoy()
     if ofertas:
         return ofertas
