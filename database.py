@@ -26,7 +26,7 @@ def obtenerRecibosHoy():
 
     cursor.execute("""
         SELECT id_recibo, id_fecha, id_neto, id_descuento, id_concepto, id_contribuyente 
-        FROM TEARM01 
+        FROM TEARMO01 
         WHERE id_fecha = %s
         ORDER BY id_fecha DESC
         LIMIT 100
