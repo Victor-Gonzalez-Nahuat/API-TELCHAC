@@ -57,7 +57,6 @@ def obtenerRecibosConIntervaloYContribuyente(desde_fecha, hasta_fecha, contribuy
         WHERE id_fecha BETWEEN %s AND %s
         AND id_contribuyente LIKE %s
         ORDER BY id_fecha DESC
-        LIMIT 100
     """, (desde_fecha, hasta_fecha, f"%{contribuyente}%"))
 
     resultados = cursor.fetchall()
@@ -88,7 +87,6 @@ def obtenerRecibosConIntervalo(desde_fecha, hasta_fecha):
         FROM TEARMO01 
         WHERE id_fecha BETWEEN %s AND %s
         ORDER BY id_fecha DESC
-        LIMIT 100
     """, (desde_fecha, hasta_fecha)) 
 
     resultados = cursor.fetchall()
@@ -122,7 +120,6 @@ def obtenerRecibosHoy():
         FROM TEARMO01 
         WHERE id_fecha = %s
         ORDER BY id_fecha DESC
-        LIMIT 100
     """, (fecha_hoy,)) 
 
     resultados = cursor.fetchall()
