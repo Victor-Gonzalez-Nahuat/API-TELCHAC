@@ -119,7 +119,6 @@ def obtenerRecibosConIntervalo(desde_fecha, hasta_fecha):
     ]
     return recibos
 
-
 def obtenerRecibosHoy():
     conn = get_connection()
     cursor = conn.cursor()
@@ -152,3 +151,34 @@ def obtenerRecibosHoy():
     ]
     return recibos
 
+def obtenerDespliegueTotales(desde_fecha, hasta_fecha):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT 
+            id_cuenta,
+            COALESCE(SUM(id_neto), 0) AS total_neto,
+            COALESCE(SUM(id_descuento), 0) AS total_descuento
+        FROM TEARMO01
+        WHERE id_fecha BETWEEN %s AND %s
+        AND id_status = 0
+        GROUP BY id_cuenta
+        ORDER BY id_cuenta
+    """, (desde_fecha, hasta_fecha))
+
+    resultados = cursor.fetchall()
+    conn.close()
+
+    if not resultados:
+        return []
+
+    despliegue = [
+        {
+            "cuenta": row[0],
+            "total_neto": float(row[1]),
+            "total_descuento": float(row[2])
+        } 
+        for row in resultados
+    ]
+    return despliegue
