@@ -20,7 +20,6 @@ async def obtenerSumaTotalesDespliegue(
     totales = obtenerDespliegueTotales(desde, hasta)
     return totales
     
-
 @app.get("/recibos/totales")
 async def obtenerSumaTotalesYDescuentos(
     desde: str = Query(..., description="Fecha de inicio (yymmdd)"),

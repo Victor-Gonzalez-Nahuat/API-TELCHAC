@@ -157,14 +157,15 @@ def obtenerDespliegueTotales(desde_fecha, hasta_fecha):
 
     cursor.execute("""
         SELECT 
-            id_cuenta,
-            COALESCE(SUM(id_neto), 0) AS total_neto,
-            COALESCE(SUM(id_descuento), 0) AS total_descuento
-        FROM TEARMO01
-        WHERE id_fecha BETWEEN %s AND %s
-        AND id_status = 0
-        GROUP BY id_cuenta
-        ORDER BY id_cuenta
+            c.id_nombrecuenta,
+            COALESCE(SUM(m.id_neto), 0) AS total_neto,
+            COALESCE(SUM(m.id_descuento), 0) AS total_descuento
+        FROM TEARMO01 m
+        JOIN TEARCA01 c ON m.id_cuenta = c.id_codigoc
+        WHERE m.id_fecha BETWEEN %s AND %s
+        AND m.id_status = 0
+        GROUP BY c.id_nombrecuenta
+        ORDER BY c.id_nombrecuenta
     """, (desde_fecha, hasta_fecha))
 
     resultados = cursor.fetchall()
@@ -175,7 +176,7 @@ def obtenerDespliegueTotales(desde_fecha, hasta_fecha):
 
     despliegue = [
         {
-            "cuenta": row[0],
+            "cuenta": row[0],  # Ahora es el nombre de la cuenta
             "total_neto": float(row[1]),
             "total_descuento": float(row[2])
         } 
