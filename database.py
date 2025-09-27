@@ -7,6 +7,11 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import mm
+import requests
+from reportlab.platypus import Image as RLImage
+from reportlab.lib.utils import ImageReader
+
+
 from datetime import datetime
 
 DB_HOST = os.getenv('DB_HOST')
@@ -14,6 +19,9 @@ DB_USER = os.getenv('DB_USER')
 DB_PASSWORD = os.getenv('DB_PASSWORD')
 DB_NAME = os.getenv('DB_NAME')
 DB_PORT = int(os.getenv('DB_PORT'))
+
+LOGO_URL = "https://i.ibb.co/SDz9CZXS/Imagen-de-Whats-App-2025-04-22-a-las-15-46-24-f6a2c21e.jpg"
+
 
 def expandir_rango_fechas(desde, hasta):
     """Ajusta el rango para que hasta incluya todo el día."""
@@ -269,8 +277,31 @@ def yymmdd_to_human(yymmdd: str) -> str:
 def _attachment_headers(filename: str) -> dict:
     return {"Content-Disposition": f'attachment; filename="{filename}"'}
 
-def build_pdf_advanced(title: str, subtitle: str, headers: list[str], rows: list[list],
-                       col_widths=None, landscape_mode=True, extra_styles=None) -> bytes:
+def _make_logo_flowable(url: str, max_w=35*mm, max_h=20*mm):
+    """Descarga el logo y devuelve un Flowable Image ajustado a un cuadro max_w x max_h."""
+    try:
+        resp = requests.get(url, timeout=8)
+        resp.raise_for_status()
+        img_bytes = BytesIO(resp.content)
+        ir = ImageReader(img_bytes)
+        iw, ih = ir.getSize()
+        scale = min(max_w / iw, max_h / ih)
+        w, h = iw * scale, ih * scale
+        img_bytes.seek(0)
+        return RLImage(img_bytes, width=w, height=h)
+    except Exception:
+        return None
+
+def build_pdf_advanced(
+    title: str,
+    subtitle: str,
+    headers: list[str],
+    rows: list[list],
+    col_widths=None,
+    landscape_mode=True,
+    extra_styles=None,
+    logo_url: str | None = LOGO_URL,  # <--- NUEVO: usa tu constante por default
+) -> bytes:
     buf = BytesIO()
     pagesize = landscape(A4) if landscape_mode else A4
     doc = SimpleDocTemplate(
@@ -284,21 +315,42 @@ def build_pdf_advanced(title: str, subtitle: str, headers: list[str], rows: list
     cell_style = ParagraphStyle("cell", parent=styles["Normal"], fontName="Helvetica", fontSize=9, leading=11)
     head_style = ParagraphStyle("head", parent=styles["Normal"], fontName="Helvetica-Bold", fontSize=10, leading=12)
 
-    story = [Paragraph(title, styles["Title"])]
+    story = []
+
+    # ---------- Encabezado con logo + títulos ----------
+    logo_flow = _make_logo_flowable(logo_url) if logo_url else None
+    title_block = [Paragraph(title, styles["Title"])]
     if subtitle:
-        story.append(Paragraph(subtitle, styles["Italic"]))
+        title_block.append(Paragraph(subtitle, styles["Italic"]))
+
+    if logo_flow:
+        header_tbl = Table(
+            [[logo_flow, title_block]],
+            colWidths=[40*mm, None]  # 40mm para logo + margen; la derecha se expande
+        )
+        header_tbl.setStyle(TableStyle([
+            ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
+            ("LEFTPADDING", (0,0), (-1,-1), 0),
+            ("RIGHTPADDING", (0,0), (-1,-1), 0),
+            ("TOPPADDING", (0,0), (-1,-1), 0),
+            ("BOTTOMPADDING", (0,0), (-1,-1), 4),
+        ]))
+        story.append(header_tbl)
+    else:
+        # Fallback sin logo
+        story.extend(title_block)
+
     story.append(Spacer(1, 6))
 
+    # ---------- Sin datos ----------
     if not rows:
         story.append(Paragraph("Sin resultados para los criterios seleccionados.", styles["Italic"]))
         doc.build(story)
         pdf = buf.getvalue(); buf.close()
         return pdf
 
-    wrapped_rows = []
-    for r in rows:
-        wrapped_rows.append([Paragraph("" if c is None else str(c), cell_style) for c in r])
-
+    # ---------- Tabla de datos ----------
+    wrapped_rows = [[Paragraph("" if c is None else str(c), cell_style) for c in r] for r in rows]
     header_pars = [Paragraph(h, head_style) for h in headers]
     data = [header_pars] + wrapped_rows
 
@@ -306,7 +358,6 @@ def build_pdf_advanced(title: str, subtitle: str, headers: list[str], rows: list
         col_widths = [22*mm]*len(headers)
 
     table = Table(data, colWidths=col_widths, repeatRows=1)
-
     base_style = [
         ("BACKGROUND", (0,0), (-1,0), colors.lightgrey),
         ("LINEBELOW", (0,0), (-1,0), 0.5, colors.grey),
