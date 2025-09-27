@@ -191,14 +191,14 @@ def obtenerCedulasConIntervalo(desde_fecha, hasta_fecha):
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT 
-            t.codigo, 
-            t.motivo, 
-            t.fecham, 
-            t.contribuyente, 
+        SELECT
+            t.codigo,
+            t.motivo,
+            t.fecham,
+            t.contribuyente,
             k.direccion_completa AS direccion
         FROM TEARMM01 t
-        INNER JOIN KTARMA01 k ON t.codigo = k.codigo
+        LEFT JOIN KTARMA01 k ON t.codigo = k.codigo
         WHERE t.fecham BETWEEN %s AND %s
         ORDER BY t.fecham DESC
     """, (desde_fecha, hasta_fecha))
