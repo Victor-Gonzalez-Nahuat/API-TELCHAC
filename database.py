@@ -183,3 +183,40 @@ def obtenerDespliegueTotales(desde_fecha, hasta_fecha):
         for row in resultados
     ]
     return despliegue
+
+#LOGICA CEDULAS
+
+def obtenerCedulasConIntervalo(desde_fecha, hasta_fecha):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT 
+            t.codigo, 
+            t.motivo, 
+            t.fecham, 
+            t.contribuyente, 
+            k.direccion_completa AS direccion
+        FROM TEARMM01 t
+        INNER JOIN KTARMA01 k ON t.codigo = k.codigo
+        WHERE t.id_fecha BETWEEN %s AND %s
+        ORDER BY t.id_fecha DESC
+    """, (desde_fecha, hasta_fecha))
+
+    resultados = cursor.fetchall()
+    conn.close()
+
+    if not resultados:
+        return []
+
+    cedulas = [
+        {
+            "folio": row[0],
+            "motivo": row[1],
+            "fecham": row[2],
+            "contribuyente": row[3],
+            "direccion": row[4],
+        }
+        for row in resultados
+    ]
+    return cedulas
