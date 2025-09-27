@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, Query
 from database import obtenerRecibosHoy, obtenerRecibosConIntervalo, obtenerRecibosConIntervaloYContribuyente, \
-    obtenerTotalesYDescuentos, obtenerDespliegueTotales, obtenerCedulasConIntervalo
+    obtenerTotalesYDescuentos, obtenerDespliegueTotales, obtenerCedulasConIntervalo, \
+    obtenerCedulasConIntervaloYContribuyente
 from dotenv import load_dotenv
 import os
 
@@ -69,3 +70,14 @@ async def buscarCedulasIntervalo(
     if cedulas:
         return cedulas
     raise HTTPException(status_code=404, detail="No se encontraron cedulas en ese intervalo")
+
+@app.get("/recibos/filtrar")
+async def buscarCedulasContribuyenteIntervalo(
+    desde: str = Query(...),
+    hasta: str = Query(...),
+    contribuyente: str = Query(...)
+):
+    recibos = obtenerCedulasConIntervaloYContribuyente(desde, hasta, contribuyente)
+    if recibos:
+        return recibos
+    raise HTTPException(status_code=404, detail="No se encontraron recibos con ese contribuyente en ese intervalo")

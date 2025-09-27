@@ -218,3 +218,34 @@ def obtenerCedulasConIntervalo(desde_fecha, hasta_fecha):
         for row in resultados
     ]
     return cedulas
+
+
+def obtenerCedulasConIntervaloYContribuyente(desde_fecha, hasta_fecha, contribuyente):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT LEFT(codigo, 6), motivo, fecham, contribuyente, direccion 
+        FROM TEARMM01 
+        WHERE fecham BETWEEN %s AND %s
+        AND contribuyente LIKE %s
+        ORDER BY fecham DESC
+    """, (desde_fecha, hasta_fecha, f"%{contribuyente}%"))
+
+    resultados = cursor.fetchall()
+    conn.close()
+
+    if not resultados:
+        return []
+
+    cedulas = [
+        {
+            "folio": row[0],
+            "motivo": row[1],
+            "fecham": row[2],
+            "contribuyente": row[3],
+            "direccion": row[4],
+        }
+        for row in resultados
+    ]
+    return cedulas
