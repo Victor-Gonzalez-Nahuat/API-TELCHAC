@@ -1,6 +1,12 @@
 import pymysql
 import os
 import datetime
+from io import BytesIO
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from datetime import datetime
 
 DB_HOST = os.getenv('DB_HOST')
 DB_USER = os.getenv('DB_USER')
@@ -249,3 +255,52 @@ def obtenerCedulasConIntervaloYContribuyente(desde_fecha, hasta_fecha, contribuy
         for row in resultados
     ]
     return cedulas
+
+# -----------------------
+# Utilidades PDF
+# -----------------------
+def yymmdd_to_human(yymmdd: str) -> str:
+    try:
+        return datetime.strptime(yymmdd, "%y%m%d").strftime("%d-%m-%Y")
+    except Exception:
+        return yymmdd
+
+def build_pdf(title: str, subtitle: str, headers: list[str], rows: list[list[str]]) -> bytes:
+    buf = BytesIO()
+    doc = SimpleDocTemplate(buf, pagesize=A4, leftMargin=36, rightMargin=36, topMargin=36, bottomMargin=36)
+    styles = getSampleStyleSheet()
+    story = []
+
+    story.append(Paragraph(title, styles["Title"]))
+    if subtitle:
+        story.append(Paragraph(subtitle, styles["Normal"]))
+    story.append(Spacer(1, 12))
+
+    # Si no hay filas, ponemos un mensaje claro
+    if not rows:
+        story.append(Paragraph("Sin resultados para los criterios seleccionados.", styles["Italic"]))
+        doc.build(story)
+        pdf = buf.getvalue()
+        buf.close()
+        return pdf
+
+    data = [headers] + rows
+    table = Table(data, repeatRows=1)
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.black),
+        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
+        ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
+    ]))
+    story.append(table)
+    doc.build(story)
+
+    pdf = buf.getvalue()
+    buf.close()
+    return pdf
+
+def _attachment_headers(filename: str) -> dict:
+    return {"Content-Disposition": f'attachment; filename="{filename}"'}
+
