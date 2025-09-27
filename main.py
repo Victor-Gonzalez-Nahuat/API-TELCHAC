@@ -71,7 +71,7 @@ async def buscarCedulasIntervalo(
         return cedulas
     raise HTTPException(status_code=404, detail="No se encontraron cedulas en ese intervalo")
 
-@app.get("/recibos/filtrar")
+@app.get("/cedulas/filtrar")
 async def buscarCedulasContribuyenteIntervalo(
     desde: str = Query(...),
     hasta: str = Query(...),
