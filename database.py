@@ -2,10 +2,11 @@ import pymysql
 import os
 import datetime
 from io import BytesIO
-from reportlab.lib.pagesizes import A4
+from reportlab.lib.pagesizes import A4, landscape
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import mm
 from datetime import datetime
 
 DB_HOST = os.getenv('DB_HOST')
@@ -265,42 +266,102 @@ def yymmdd_to_human(yymmdd: str) -> str:
     except Exception:
         return yymmdd
 
-def build_pdf(title: str, subtitle: str, headers: list[str], rows: list[list[str]]) -> bytes:
-    buf = BytesIO()
-    doc = SimpleDocTemplate(buf, pagesize=A4, leftMargin=36, rightMargin=36, topMargin=36, bottomMargin=36)
-    styles = getSampleStyleSheet()
-    story = []
+def _attachment_headers(filename: str) -> dict:
+    return {"Content-Disposition": f'attachment; filename="{filename}"'}
 
+def build_pdf_advanced(title: str, subtitle: str, headers: list[str], rows: list[list], col_widths=None, landscape_mode=True) -> bytes:
+    """
+    - Paisaje opcional
+    - Encabezado repetido
+    - Zebra striping
+    - Wrapping en celdas largas (usa Paragraph)
+    """
+    buf = BytesIO()
+    pagesize = landscape(A4) if landscape_mode else A4
+    doc = SimpleDocTemplate(
+        buf,
+        pagesize=pagesize,
+        leftMargin=14*mm, rightMargin=14*mm,
+        topMargin=12*mm, bottomMargin=12*mm,
+        title=title
+    )
+    styles = getSampleStyleSheet()
+    # Estilos para envolver texto
+    cell_style = ParagraphStyle(
+        "cell",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=9,
+        leading=11,
+    )
+    head_style = ParagraphStyle(
+        "head",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=10,
+        leading=12,
+        textColor=colors.black,
+    )
+
+    story = []
     story.append(Paragraph(title, styles["Title"]))
     if subtitle:
-        story.append(Paragraph(subtitle, styles["Normal"]))
-    story.append(Spacer(1, 12))
+        story.append(Paragraph(subtitle, styles["Italic"]))
+    story.append(Spacer(1, 6))
 
-    # Si no hay filas, ponemos un mensaje claro
+    # Si no hay filas, PDF “vacío” pero claro
     if not rows:
         story.append(Paragraph("Sin resultados para los criterios seleccionados.", styles["Italic"]))
         doc.build(story)
-        pdf = buf.getvalue()
-        buf.close()
+        pdf = buf.getvalue(); buf.close()
         return pdf
 
-    data = [headers] + rows
-    table = Table(data, repeatRows=1)
+    # Envuelve a Paragraph lo que sea texto largo
+    wrapped_rows = []
+    for r in rows:
+        wrapped = []
+        for i, cell in enumerate(r):
+            text = "" if cell is None else str(cell)
+            # Motivo/Dirección suelen ser largos: aplica Paragraph
+            if i in (3, 4):  # columnas 3=Motivo, 4=Dirección en el reporte de Cédulas
+                wrapped.append(Paragraph(text, cell_style))
+            else:
+                wrapped.append(Paragraph(text, cell_style))
+        wrapped_rows.append(wrapped)
+
+    header_pars = [Paragraph(h, head_style) for h in headers]
+    data = [header_pars] + wrapped_rows
+
+    # Anchos de columna recomendados en mm (ajústalos a gusto)
+    if col_widths is None:
+        col_widths = [
+            22*mm,  # Folio
+            22*mm,  # Fecha
+            50*mm,  # Contribuyente
+            60*mm,  # Motivo
+            80*mm,  # Dirección
+        ]
+
+    table = Table(data, colWidths=col_widths, repeatRows=1)
     table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.black),
-        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
-        ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
+        # Header
+        ("BACKGROUND", (0,0), (-1,0), colors.lightgrey),
+        ("LINEBELOW", (0,0), (-1,0), 0.5, colors.grey),
+        ("VALIGN", (0,0), (-1,-1), "TOP"),
+        ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"),
+        ("FONTSIZE", (0,0), (-1,0), 10),
+        ("LEFTPADDING", (0,0), (-1,-1), 4),
+        ("RIGHTPADDING", (0,0), (-1,-1), 4),
+        ("TOPPADDING", (0,0), (-1,-1), 3),
+        ("BOTTOMPADDING", (0,0), (-1,-1), 3),
+        # Bordes suaves
+        ("GRID", (0,0), (-1,-1), 0.25, colors.lightgrey),
+        # Zebra striping (desde fila 1 en adelante)
+        ("ROWBACKGROUNDS", (0,1), (-1,-1), [colors.whitesmoke, colors.Color(0.96,0.96,0.96)]),
     ]))
+
     story.append(table)
     doc.build(story)
-
-    pdf = buf.getvalue()
-    buf.close()
+    pdf = buf.getvalue(); buf.close()
     return pdf
-
-def _attachment_headers(filename: str) -> dict:
-    return {"Content-Disposition": f'attachment; filename="{filename}"'}
 
