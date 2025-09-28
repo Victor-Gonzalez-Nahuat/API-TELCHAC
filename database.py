@@ -370,8 +370,8 @@ def build_pdf_advanced(
         ("BOTTOMPADDING", (0,0), (-1,-1), 3),
         ("GRID", (0,0), (-1,-1), 0.25, colors.lightgrey),
         ("ROWBACKGROUNDS", (0, 1), (-1, -1), [
-            colors.HexColor("#F7FBFF"),  # azul muy pálido
-            colors.HexColor("#EEF5FF"),
+            colors.HexColor("#FAB1B1"),  # azul muy pálido
+            colors.HexColor("#FAD5B1"),
         ]),
     ]
     if extra_styles:
