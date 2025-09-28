@@ -359,8 +359,8 @@ def build_pdf_advanced(
 
     table = Table(data, colWidths=col_widths, repeatRows=1)
     base_style = [
-        ("BACKGROUND", (0,0), (-1,0), colors.lightgrey),
-        ("LINEBELOW", (0,0), (-1,0), 0.5, colors.grey),
+        ("BACKGROUND", (0,0), (-1,0), colors.white),
+        ("LINEBELOW", (0,0), (-1,0), 0.5, colors.HexColor("#6E0707")),
         ("VALIGN", (0,0), (-1,-1), "TOP"),
         ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"),
         ("FONTSIZE", (0,0), (-1,0), 10),
@@ -368,10 +368,10 @@ def build_pdf_advanced(
         ("RIGHTPADDING", (0,0), (-1,-1), 4),
         ("TOPPADDING", (0,0), (-1,-1), 3),
         ("BOTTOMPADDING", (0,0), (-1,-1), 3),
-        ("GRID", (0,0), (-1,-1), 0.25, colors.lightgrey),
+        ("GRID", (0,0), (-1,-1), 0.25, colors.HexColor("6E0707")),
         ("ROWBACKGROUNDS", (0, 1), (-1, -1), [
             colors.HexColor("#FAB1B1"),  # azul muy pálido
-            colors.HexColor("#FAD5B1"),
+            colors.HexColor("#FCDCDC"),
         ]),
     ]
     if extra_styles:
