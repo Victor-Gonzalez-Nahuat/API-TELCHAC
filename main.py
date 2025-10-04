@@ -211,7 +211,7 @@ async def reporte_cedulas(
     sub = f"Rango: {rango}" + (f" — Contribuyente: {contribuyente.strip()}" if contribuyente else "")
 
     # 4) Col widths pensadas para paisaje A4 (ajústalas si lo ves apretado)
-    col_widths = [22*mm, 22*mm, 50*mm, 22*mm, 22*mm, 22*mm, 22*mm, 22*mm]
+    col_widths = [22*mm, 22*mm, 50*mm, 50*mm, 50*mm, 22*mm, 22*mm, 22*mm]
 
     pdf_bytes = build_pdf_advanced(title, sub, headers, rows, col_widths=col_widths, landscape_mode=True)
     fname = f"cedulas_{desde}-{hasta}" + (f"_{contribuyente.strip().upper().replace(' ', '_')}" if contribuyente else "") + ".pdf"
