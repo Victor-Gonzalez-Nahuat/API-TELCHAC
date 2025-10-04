@@ -201,7 +201,7 @@ async def reporte_cedulas(
             r.get("contribuyente", ""),
             r.get("motivo", ""),
             r.get("direccion", "") or "",
-            importe,
+            f"${importe}",
             r.get("recibo_teso") if r.get("recibo_teso") != None else "Sin recibo",
             yymmdd_to_human(str(r.get("fecha_rteso"))) if r.get("recibo_teso") != None else "Sin recibo"
         ])
