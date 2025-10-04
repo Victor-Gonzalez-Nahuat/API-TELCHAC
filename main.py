@@ -191,7 +191,7 @@ async def reporte_cedulas(
         pass
 
     # 3) Arma filas en el orden: Folio | Fecha | Contribuyente | Motivo | Dirección
-    headers = ["Folio", "Fecha", "Contribuyente", "Motivo", "Dirección"]
+    headers = ["Folio", "Fecha", "Contribuyente", "Motivo", "Dirección", "Importe", "Recibo", "Fecha Recibo"]
     rows = []
     for r in data:
         rows.append([
