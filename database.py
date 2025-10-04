@@ -233,10 +233,10 @@ def obtenerCedulasConIntervalo(desde_fecha, hasta_fecha):
             "fecham": row[2],
             "contribuyente": row[3],
             "direccion": row[4],
-            "precio_unitario": [5],
-            "cantidad": [6],
-            "recibo_teso": [7],
-            "fecha_rteso": [8]
+            "precio_unitario": row[5],
+            "cantidad": row[6],
+            "recibo_teso": row[7],
+            "fecha_rteso": row[8]
         }
         for row in resultados
     ]
@@ -271,10 +271,10 @@ def obtenerCedulasConIntervaloYContribuyente(desde_fecha, hasta_fecha, contribuy
             "fecham": row[2],
             "contribuyente": row[3],
             "direccion": row[4],
-            "precio_unitario": [5],
-            "cantidad": [6],
-            "recibo_teso": [7],
-            "fecha_rteso": [8]
+            "precio_unitario": row[5],
+            "cantidad": row[6],
+            "recibo_teso": row[7],
+            "fecha_rteso": row[8]
         }
         for row in resultados
     ]
