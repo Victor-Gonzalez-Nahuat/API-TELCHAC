@@ -215,7 +215,8 @@ def obtenerCedulasConIntervalo(desde_fecha, hasta_fecha):
             precio_unitario,
             cantidad,
             recibo_teso,
-            fecha_rteso
+            fecha_rteso,
+            codigo
         FROM TEARMM01 WHERE fecham BETWEEN %s AND %s
         ORDER BY fecham DESC
     """, (desde_fecha, hasta_fecha))
@@ -236,7 +237,8 @@ def obtenerCedulasConIntervalo(desde_fecha, hasta_fecha):
             "precio_unitario": row[5],
             "cantidad": row[6],
             "recibo_teso": row[7],
-            "fecha_rteso": row[8]
+            "fecha_rteso": row[8],
+            "folio_electronico": row[9]
         }
         for row in resultados
     ]
@@ -251,7 +253,8 @@ def obtenerCedulasConIntervaloYContribuyente(desde_fecha, hasta_fecha, contribuy
         SELECT LEFT(codigo, 6), motivo, fecham, contribuyente, direccion, precio_unitario,
             cantidad,
             recibo_teso,
-            fecha_rteso 
+            fecha_rteso,
+            codigo
         FROM TEARMM01 
         WHERE fecham BETWEEN %s AND %s
         AND contribuyente LIKE %s
@@ -274,7 +277,8 @@ def obtenerCedulasConIntervaloYContribuyente(desde_fecha, hasta_fecha, contribuy
             "precio_unitario": row[5],
             "cantidad": row[6],
             "recibo_teso": row[7],
-            "fecha_rteso": row[8]
+            "fecha_rteso": row[8],
+            "folio_electronico": row[9]
         }
         for row in resultados
     ]

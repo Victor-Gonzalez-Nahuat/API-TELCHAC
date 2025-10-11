@@ -191,13 +191,14 @@ async def reporte_cedulas(
         pass
 
     # 3) Arma filas en el orden: Folio | Fecha | Contribuyente | Motivo | Dirección
-    headers = ["Folio", "Fecha", "Contribuyente", "Motivo", "Dirección", "Importe", "Recibo", "Fecha Recibo"]
+    headers = ["Folio", "Fecha", "Folio Elec.", "Contribuyente", "Motivo", "Dirección", "Importe", "Recibo", "Fecha Recibo"]
     rows = []
     for r in data:
         importe = float(r.get("precio_unitario")) * float(r.get("cantidad"))
         rows.append([
             r.get("folio", ""),
             yymmdd_to_human(str(r.get("fecham", ""))),
+            r.get("folio_electronico"),
             r.get("contribuyente", ""),
             r.get("motivo", ""),
             r.get("direccion", "") or "",
@@ -211,7 +212,7 @@ async def reporte_cedulas(
     sub = f"Rango: {rango}" + (f" — Contribuyente: {contribuyente.strip()}" if contribuyente else "")
 
     # 4) Col widths pensadas para paisaje A4 (ajústalas si lo ves apretado)
-    col_widths = [22*mm, 22*mm, 50*mm, 50*mm, 50*mm, 22*mm, 22*mm, 22*mm]
+    col_widths = [22*mm, 22*mm, 22*mm, 50*mm, 50*mm, 50*mm, 22*mm, 22*mm, 22*mm]
 
     pdf_bytes = build_pdf_advanced(title, sub, headers, rows, col_widths=col_widths, landscape_mode=True)
     fname = f"cedulas_{desde}-{hasta}" + (f"_{contribuyente.strip().upper().replace(' ', '_')}" if contribuyente else "") + ".pdf"
