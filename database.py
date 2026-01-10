@@ -79,7 +79,7 @@ def obtenerRecibosConIntervaloYContribuyente(desde_fecha, hasta_fecha, contribuy
     cursor = conn.cursor()
     
     cursor.execute("""
-        SELECT id_recibo, id_fecha, id_neto, id_descuento, id_concepto1, id_contribuyente, id_dispo1
+        SELECT id_recibo, id_fecha, id_neto, id_descuento, id_concepto1, id_contribuyente, id_dispo6
         FROM TEARMO01 
         WHERE id_fecha BETWEEN %s AND %s
         AND id_contribuyente LIKE %s
@@ -111,7 +111,7 @@ def obtenerRecibosConIntervalo(desde_fecha, hasta_fecha):
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT id_recibo, id_fecha, id_neto, id_descuento, id_concepto1, id_contribuyente, id_dispo1
+        SELECT id_recibo, id_fecha, id_neto, id_descuento, id_concepto1, id_contribuyente, id_dispo6
         FROM TEARMO01 
         WHERE id_fecha BETWEEN %s AND %s
         ORDER BY id_fecha DESC
@@ -144,7 +144,7 @@ def obtenerRecibosHoy():
     fecha_hoy = datetime.datetime.today().strftime('%y%m%d')
 
     cursor.execute("""
-        SELECT id_recibo, id_fecha, id_neto, id_descuento, id_concepto1, id_contribuyente, id_dispo1
+        SELECT id_recibo, id_fecha, id_neto, id_descuento, id_concepto1, id_contribuyente, id_dispo6
         FROM TEARMO01 
         WHERE id_fecha = %s
         ORDER BY id_fecha DESC
