@@ -112,13 +112,14 @@ async def reporte_recibos(
         pass
 
     # 3) Armar filas: Recibo | Fecha | Contribuyente | Concepto | Neto | Descuento
-    headers = ["Recibo", "Fecha", "Contribuyente", "Concepto", "Neto", "Descuento"]
+    headers = ["Recibo", "Fecha", "Contribuyente", "Concepto", "Neto", "Descuento", "% Descuento"]
     rows = []
     total_neto = 0.0
     total_desc = 0.0
     for r in data:
         neto = float(r.get("neto", 0) or 0)
         desc = float(r.get("descuento", 0) or 0)
+        porcentaje_desc = f"{r.get("porcentaje_descuento")}%"
         total_neto += neto
         total_desc += desc
         rows.append([
@@ -128,6 +129,7 @@ async def reporte_recibos(
             r.get("concepto", ""),
             f"${neto:,.2f}",
             f"${desc:,.2f}",
+            porcentaje_desc
         ])
 
     # 4) Fila de totales (si hay datos)

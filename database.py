@@ -14,11 +14,7 @@ from reportlab.lib.utils import ImageReader
 
 from datetime import datetime
 
-DB_HOST = os.getenv('DB_HOST')
-DB_USER = os.getenv('DB_USER')
-DB_PASSWORD = os.getenv('DB_PASSWORD')
-DB_NAME = os.getenv('DB_NAME')
-DB_PORT = int(os.getenv('DB_PORT'))
+
 
 LOGO_URL = "https://i.ibb.co/SDz9CZXS/Imagen-de-Whats-App-2025-04-22-a-las-15-46-24-f6a2c21e.jpg"
 
@@ -31,6 +27,11 @@ def expandir_rango_fechas(desde, hasta):
 
 
 def get_connection():
+    DB_HOST = os.getenv('DB_HOST')
+    DB_USER = os.getenv('DB_USER')
+    DB_PASSWORD = os.getenv('DB_PASSWORD')
+    DB_NAME = os.getenv('DB_NAME')
+    DB_PORT = int(os.getenv('DB_PORT'))
     return pymysql.connect(
         host=DB_HOST,
         user=DB_USER,
@@ -78,7 +79,7 @@ def obtenerRecibosConIntervaloYContribuyente(desde_fecha, hasta_fecha, contribuy
     cursor = conn.cursor()
     
     cursor.execute("""
-        SELECT id_recibo, id_fecha, id_neto, id_descuento, id_concepto1, id_contribuyente 
+        SELECT id_recibo, id_fecha, id_neto, id_descuento, id_concepto1, id_contribuyente, id_dispo1
         FROM TEARMO01 
         WHERE id_fecha BETWEEN %s AND %s
         AND id_contribuyente LIKE %s
@@ -99,6 +100,7 @@ def obtenerRecibosConIntervaloYContribuyente(desde_fecha, hasta_fecha, contribuy
             "descuento": row[3],
             "concepto": row[4],
             "contribuyente": row[5],
+            "porcentaje_descuento": row[6]
         } 
         for row in resultados
     ]
@@ -109,7 +111,7 @@ def obtenerRecibosConIntervalo(desde_fecha, hasta_fecha):
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT id_recibo, id_fecha, id_neto, id_descuento, id_concepto1, id_contribuyente 
+        SELECT id_recibo, id_fecha, id_neto, id_descuento, id_concepto1, id_contribuyente, id_dispo1
         FROM TEARMO01 
         WHERE id_fecha BETWEEN %s AND %s
         ORDER BY id_fecha DESC
@@ -129,6 +131,7 @@ def obtenerRecibosConIntervalo(desde_fecha, hasta_fecha):
             "descuento": row[3],
             "concepto": row[4],
             "contribuyente": row[5],
+            "porcentaje_descuento": row[6]
         } 
         for row in resultados
     ]
@@ -141,7 +144,7 @@ def obtenerRecibosHoy():
     fecha_hoy = datetime.datetime.today().strftime('%y%m%d')
 
     cursor.execute("""
-        SELECT id_recibo, id_fecha, id_neto, id_descuento, id_concepto1, id_contribuyente 
+        SELECT id_recibo, id_fecha, id_neto, id_descuento, id_concepto1, id_contribuyente, id_dispo1
         FROM TEARMO01 
         WHERE id_fecha = %s
         ORDER BY id_fecha DESC
