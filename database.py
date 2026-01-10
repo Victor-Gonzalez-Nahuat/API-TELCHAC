@@ -131,7 +131,7 @@ def obtenerRecibosConIntervalo(desde_fecha, hasta_fecha):
             "descuento": row[3],
             "concepto": row[4],
             "contribuyente": row[5],
-            "porcentaje_descuento": row[6]
+            "porcentaje_descuento": row[6] if row[6] else 0,
         } 
         for row in resultados
     ]
@@ -164,6 +164,7 @@ def obtenerRecibosHoy():
             "descuento": row[3],
             "concepto": row[4],
             "contribuyente": row[5],
+            "porcentaje_descuento": row[6] if row[6] else 0,
         } 
         for row in resultados
     ]
