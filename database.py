@@ -111,7 +111,7 @@ def obtenerRecibosConIntervalo(desde_fecha, hasta_fecha):
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT id_recibo, id_fecha, id_neto, id_descuento, id_concepto1, id_contribuyente, id_dispo6
+        SELECT id_recibo, id_fecha, id_neto, id_descuento, id_concepto1, id_contribuyente, id_dispo6, id_formapago
         FROM TEARMO01 
         WHERE id_fecha BETWEEN %s AND %s
         ORDER BY id_fecha DESC
@@ -132,6 +132,7 @@ def obtenerRecibosConIntervalo(desde_fecha, hasta_fecha):
             "concepto": row[4],
             "contribuyente": row[5],
             "porcentaje_descuento": row[6] if row[6] else 0,
+            "forma_pago": row[7]
         } 
         for row in resultados
     ]
@@ -144,7 +145,7 @@ def obtenerRecibosHoy():
     fecha_hoy = datetime.datetime.today().strftime('%y%m%d')
 
     cursor.execute("""
-        SELECT id_recibo, id_fecha, id_neto, id_descuento, id_concepto1, id_contribuyente, id_dispo6
+        SELECT id_recibo, id_fecha, id_neto, id_descuento, id_concepto1, id_contribuyente, id_dispo6, id_formapago
         FROM TEARMO01 
         WHERE id_fecha = %s
         ORDER BY id_fecha DESC
@@ -165,6 +166,7 @@ def obtenerRecibosHoy():
             "concepto": row[4],
             "contribuyente": row[5],
             "porcentaje_descuento": row[6] if row[6] else 0,
+            "forma_pago": row[7]
         } 
         for row in resultados
     ]
