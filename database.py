@@ -131,7 +131,7 @@ def obtenerRecibosConIntervalo(desde_fecha, hasta_fecha):
             "descuento": row[3],
             "concepto": row[4],
             "contribuyente": row[5],
-            "porcentaje_descuento": row[6] if row[6] else 0,
+            "porcentaje_descuento": row[6] if row[6] and row[6] != "000000" else 0,
             "forma_pago": row[7]
         } 
         for row in resultados
