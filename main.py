@@ -19,7 +19,12 @@ DB_USER = os.getenv('DB_USER')
 DB_PASSWORD = os.getenv('DB_PASSWORD')
 DB_NAME = os.getenv('DB_NAME')
 
-app = FastAPI()
+ENV = os.getenv("ENV", "DEV")
+
+if ENV == "PROD":
+    app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+else:
+    app = FastAPI()
 
 @app.get("/recibos/totales/despliegue")
 async def obtenerSumaTotalesDespliegue(
