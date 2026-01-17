@@ -165,9 +165,10 @@ async def reporte_recibos(
     # Alinear Neto/Descuento a la derecha y poner la última fila (totales) en bold
     last_row_index = len(rows)  # en la tabla real será +1 por el header
     extra_styles = [
-        ("ALIGN", (4,1), (5,-1), "RIGHT"),        # columnas 4-5 (Neto/Desc) desde 1 (primera fila de datos)
+        ("ALIGN", (4,1), (5,-1), "RIGHT"),
         ("FONTNAME", (0,last_row_index), (-1,last_row_index), "Helvetica-Bold"),
-        ("BACKGROUND", (0,last_row_index), (-1,last_row_index), colors.Color(0.95,0.95,0.95)),
+        ("BACKGROUND", (0,last_row_index), (-1,last_row_index), colors.HexColor("#BC955C")), # Fondo Dorado para totales
+        ("TEXTCOLOR", (0,last_row_index), (-1,last_row_index), colors.white), # Texto blanco para que resalte
     ]
 
     pdf_bytes = build_pdf_advanced(

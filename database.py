@@ -325,85 +325,106 @@ def build_pdf_advanced(
     col_widths=None,
     landscape_mode=True,
     extra_styles=None,
-    logo_url: str | None = LOGO_URL,  # <--- NUEVO: usa tu constante por default
+    logo_url: str | None = LOGO_URL,
 ) -> bytes:
     buf = BytesIO()
     pagesize = landscape(A4) if landscape_mode else A4
+    # Definición de colores institucionales
+    GOB_GUINDA = colors.HexColor("#691C32")
+    GOB_DORADO = colors.HexColor("#BC955C")
+    GOB_GRIS_F = colors.HexColor("#F2F2F2")
+
     doc = SimpleDocTemplate(
         buf,
         pagesize=pagesize,
-        leftMargin=14*mm, rightMargin=14*mm,
-        topMargin=12*mm, bottomMargin=12*mm,
+        leftMargin=12*mm, rightMargin=12*mm,
+        topMargin=10*mm, bottomMargin=10*mm,
         title=title
     )
+    
     styles = getSampleStyleSheet()
-    cell_style = ParagraphStyle("cell", parent=styles["Normal"], fontName="Helvetica", fontSize=9, leading=11)
-    head_style = ParagraphStyle("head", parent=styles["Normal"], fontName="Helvetica-Bold", fontSize=10, leading=12)
+    
+    # Estilos de texto personalizados
+    title_style = ParagraphStyle(
+        "GovTitle", parent=styles["Title"],
+        fontName="Helvetica-Bold", fontSize=16,
+        textColor=GOB_GUINDA, alignment=0 # Alineado a la izquierda
+    )
+    sub_style = ParagraphStyle(
+        "GovSub", parent=styles["Normal"],
+        fontName="Helvetica", fontSize=10,
+        textColor=colors.gray, leading=12
+    )
+    cell_style = ParagraphStyle(
+        "cell", parent=styles["Normal"], 
+        fontName="Helvetica", fontSize=8, leading=10
+    )
 
     story = []
 
-    # ---------- Encabezado con logo + títulos ----------
-    logo_flow = _make_logo_flowable(logo_url) if logo_url else None
-    title_block = [Paragraph(title, styles["Title"])]
-    if subtitle:
-        title_block.append(Paragraph(subtitle, styles["Italic"]))
-
-    if logo_flow:
-        header_tbl = Table(
-            [[logo_flow, title_block]],
-            colWidths=[40*mm, None]  # 40mm para logo + margen; la derecha se expande
-        )
-        header_tbl.setStyle(TableStyle([
-            ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
-            ("LEFTPADDING", (0,0), (-1,-1), 0),
-            ("RIGHTPADDING", (0,0), (-1,-1), 0),
-            ("TOPPADDING", (0,0), (-1,-1), 0),
-            ("BOTTOMPADDING", (0,0), (-1,-1), 4),
-        ]))
-        story.append(header_tbl)
-    else:
-        # Fallback sin logo
-        story.extend(title_block)
-
-    story.append(Spacer(1, 6))
-
-    # ---------- Sin datos ----------
-    if not rows:
-        story.append(Paragraph("Sin resultados para los criterios seleccionados.", styles["Italic"]))
-        doc.build(story)
-        pdf = buf.getvalue(); buf.close()
-        return pdf
-
-    # ---------- Tabla de datos ----------
-    wrapped_rows = [[Paragraph("" if c is None else str(c), cell_style) for c in r] for r in rows]
-    header_pars = [Paragraph(h, head_style) for h in headers]
-    data = [header_pars] + wrapped_rows
-
-    if col_widths is None:
-        col_widths = [22*mm]*len(headers)
-
-    table = Table(data, colWidths=col_widths, repeatRows=1)
-    base_style = [
-        ("BACKGROUND", (0,0), (-1,0), colors.white),
-        ("LINEBELOW", (0,0), (-1,0), 0.5, colors.HexColor("#6E0707")),
-        ("VALIGN", (0,0), (-1,-1), "TOP"),
-        ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"),
-        ("FONTSIZE", (0,0), (-1,0), 10),
-        ("LEFTPADDING", (0,0), (-1,-1), 4),
-        ("RIGHTPADDING", (0,0), (-1,-1), 4),
-        ("TOPPADDING", (0,0), (-1,-1), 3),
-        ("BOTTOMPADDING", (0,0), (-1,-1), 3),
-        ("GRID", (0,0), (-1,-1), 0.25, colors.HexColor("#6E0707")),
-        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [
-            colors.HexColor("#FAB1B1"),  # azul muy pálido
-            colors.HexColor("#FCDCDC"),
-        ]),
+    # ---------- ENCABEZADO INSTITUCIONAL ----------
+    logo_flow = _make_logo_flowable(logo_url, max_w=40*mm, max_h=25*mm) if logo_url else None
+    
+    # Textos del encabezado
+    header_info = [
+        Paragraph(title.upper(), title_style),
+        Paragraph(subtitle, sub_style),
+        Paragraph(f"Fecha de impresión: {datetime.now().strftime('%d/%m/%Y %H:%M')}", sub_style)
     ]
-    if extra_styles:
-        base_style.extend(extra_styles)
-    table.setStyle(TableStyle(base_style))
 
-    story.append(table)
+    # Tabla de encabezado para alinear logo y textos
+    header_data = [[logo_flow, header_info]]
+    header_tbl = Table(header_data, colWidths=[45*mm, None])
+    header_tbl.setStyle(TableStyle([
+        ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
+        ("BOTTOMPADDING", (0,0), (-1,-1), 10),
+    ]))
+    story.append(header_tbl)
+
+    # --- BARRA DECORATIVA (ESTILO GOBIERNO) ---
+    # Una línea guinda gruesa con una dorada delgada abajo
+    linea_guinda = Table([[""]], colWidths=[doc.width])
+    linea_guinda.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), GOB_GUINDA),
+        ('LEFTPADDING', (0,0), (-1,-1), 0),
+        ('RIGHTPADDING', (0,0), (-1,-1), 0),
+        ('TOPPADDING', (0,0), (-1,-1), 0),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 0),
+    ]))
+    story.append(linea_guinda)
+    story.append(Spacer(1, 2)) # Espacio mínimo entre barras
+    
+    linea_dorada = Table([[""]], colWidths=[doc.width])
+    linea_dorada.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), GOB_DORADO),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 2),
+    ]))
+    story.append(linea_dorada)
+    story.append(Spacer(1, 8))
+
+    # ---------- TABLA DE DATOS ----------
+    if not rows:
+        story.append(Paragraph("No se encontraron registros.", styles["Italic"]))
+    else:
+        wrapped_rows = [[Paragraph(str(c) if c else "", cell_style) for c in r] for r in rows]
+        # Headers con fondo guinda y texto blanco
+        header_pars = [Paragraph(f"<b>{h}</b>", ParagraphStyle("h", textColor=colors.white, fontSize=9, alignment=1)) for h in headers]
+        data = [header_pars] + wrapped_rows
+
+        table = Table(data, colWidths=col_widths, repeatRows=1)
+        
+        base_style = [
+            ("BACKGROUND", (0,0), (-1,0), GOB_GUINDA), # Encabezado guinda
+            ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
+            ("GRID", (0,0), (-1,-1), 0.1, colors.gray), # Cuadrícula muy fina
+            ("ROWBACKGROUNDS", (0,1), (-1,-1), [colors.white, GOB_GRIS_F]), # Alternancia de gris muy tenue
+        ]
+        
+        if extra_styles:
+            base_style.extend(extra_styles)
+            
+        table.setStyle(TableStyle(base_style))
+        story.append(table)
+
     doc.build(story)
-    pdf = buf.getvalue(); buf.close()
-    return pdf
+    return buf.getvalue()
