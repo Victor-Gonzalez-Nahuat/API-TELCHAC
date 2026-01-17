@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 import os
 from fastapi.responses import StreamingResponse
 from io import BytesIO
+import pandas as pd
 
 
 load_dotenv()
@@ -173,6 +174,59 @@ async def reporte_recibos(
 
     fname = f"recibos_{desde}-{hasta}" + (f"_{contribuyente.strip().upper().replace(' ', '_')}" if contribuyente else "") + ".pdf"
     return StreamingResponse(BytesIO(pdf_bytes), media_type="application/pdf", headers=_attachment_headers(fname))
+
+@app.get("/recibos/excel")
+async def reporte_recibos_excel(
+    desde: str = Query(..., description="Fecha inicio (yymmdd)"),
+    hasta: str = Query(..., description="Fecha fin (yymmdd)"),
+    contribuyente: str | None = Query(default=None, description="Filtro opcional por contribuyente"),
+):
+    # 1) Reutilizamos tu lógica de obtención de datos
+    if contribuyente and contribuyente.strip():
+        data = obtenerRecibosConIntervaloYContribuyente(desde, hasta, contribuyente.strip())
+    else:
+        data = obtenerRecibosConIntervalo(desde, hasta)
+
+    if not data:
+        raise HTTPException(status_code=404, detail="No hay datos para exportar")
+
+    # 2) Formatear los datos para que el Excel se vea "humano"
+    filas_excel = []
+    for r in data:
+        filas_excel.append({
+            "Folio": r.get("recibo"),
+            "Fecha": yymmdd_to_human(str(r.get("fecha"))),
+            "Contribuyente": r.get("contribuyente"),
+            "Concepto": r.get("concepto"),
+            "Monto Neto": float(r.get("neto") or 0),
+            "Descuento": float(r.get("descuento") or 0),
+            "% Desc": f"{r.get('porcentaje_descuento')}%",
+            "Forma de Pago": r.get("forma_pago")
+        })
+
+    # 3) Crear el Excel usando Pandas
+    df = pd.DataFrame(filas_excel)
+    
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Recibos')
+        
+        # Ajuste básico de ancho de columnas (opcional pero se ve pro)
+        worksheet = writer.sheets['Recibos']
+        for idx, col in enumerate(df.columns):
+            max_len = max(df[col].astype(str).map(len).max(), len(col)) + 2
+            worksheet.column_dimensions[chr(65 + idx)].width = max_len
+
+    output.seek(0)
+
+    # 4) Nombre del archivo y retorno
+    fname = f"recibos_{desde}_{hasta}.xlsx"
+    return StreamingResponse(
+        output, 
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers=_attachment_headers(fname)
+    )
+
 
 
 # ---- ENDPOINT mejorado: CÉDULAS -> PDF organizado ----
