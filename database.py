@@ -180,7 +180,8 @@ def obtenerDespliegueTotales(desde_fecha, hasta_fecha):
         SELECT 
             c.id_nombrecuenta,
             COALESCE(SUM(m.id_neto), 0) AS total_neto,
-            COALESCE(SUM(m.id_descuento), 0) AS total_descuento
+            COALESCE(SUM(m.id_descuento), 0) AS total_descuento,
+            COUNT(*) AS cantidad_recibos
         FROM TEARMO01 m
         JOIN TEARCA01 c ON m.id_cuenta = c.id_codigoc
         WHERE m.id_fecha BETWEEN %s AND %s
@@ -197,9 +198,10 @@ def obtenerDespliegueTotales(desde_fecha, hasta_fecha):
 
     despliegue = [
         {
-            "cuenta": row[0],  # Ahora es el nombre de la cuenta
+            "cuenta": row[0], 
             "total_neto": float(row[1]),
-            "total_descuento": float(row[2])
+            "total_descuento": float(row[2]),
+            "cantidad_recibos": int(row[3])
         } 
         for row in resultados
     ]
